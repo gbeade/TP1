@@ -34,7 +34,7 @@ int main(){
     while (1)
     {
         if( getPath(path)==NULL ){
-		if(errno = EOVERFLOW {)
+		if(errno == EOVERFLOW {)
 			perror("Path given is too large : ");
 			return -1;
 		}else return 0;
@@ -75,7 +75,7 @@ int main(){
         else{
 	    int status; 
             waitpid(pid,&status,0);
-
+	    pclose(shellParse);
         }
 
     }

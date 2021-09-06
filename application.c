@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <dirent.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -22,13 +21,13 @@ int main(int argc, char *argv[]) {
     for (int i=0; i<QSLAVES; i++) 
         for (int j=0; j<2; j++)
             if ( pipe(pipes[i][j]) < 0 ) {
-                perror("Unable to create pipe\n"); 
-             return 1; 
-         }  
+                perror("Unable to create pipe at master\n"); 
+                return 1; 
+            }  
     
     
     pid_t spids[QSLAVES];     
-    char * args[] = {"MINISAT", NULL}; 
+    char * args[] = {NULL}; 
     
     for (int i=0; i<QSLAVES; i++) {
         spids[i] = fork(); 

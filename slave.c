@@ -1,83 +1,68 @@
 #include <stdio.h>
 #include <sys/types.h>
-#include <sys/wait.h>
 #include <unistd.h>
-#include <errno.h>
+#include <fcntl.h>
 
 
-#define MAXLENGTH 6
+// Compile with -DSOLVER = '"path"'
+#ifndef SOLVER
+    #define SOLVER "./minisat"
+#endif
 
-char * getPath( char * buf){
-    char character ; 
+#define RD 0 
+#define WR 1
+#define BUFFSIZE 256 
 
-    int currentPos=0;
-    while ( ( character=getchar() ) != '\n' ){
-        if( character == EOF)
-            return NULL;
-
-        buf[currentPos++]=character;
-    	if(currentPos == MAXLENGTH){
-		errno = EOVERFLOW;
-		return NULL;
-	}
-    }
-
-    buf[currentPos]=0;
-    return buf;
-}
+char * summarize( int fd );  // extern function defined in another file 
+int callSolver( int * slverpipe, char * args[]); // INLINE? Or normal function? 
 
 
+// TODO: add closes 
+int main(int argc, char *argv[]) {
 
-int main(){
-    char path[MAXLENGTH];
+    char * args = { NULL, NULL}; 
+    int slvrpipe[2];
+    char buffer[BUFFSIZE];
+
+    if ( pipe(slvrpipe) < 0 ) {
+        perror("Unable to create pipe at slave.\n");
+        return 1;  
+    } 
     
-    while (1)
-    {
-        if( getPath(path)==NULL ){
-		if(errno == EOVERFLOW {)
-			perror("Path given is too large : ");
-			return -1;
-		}else return 0;
-	}
-
-	printf("Pid: %d\n", getpid());
-	printf("%s\n",path);
-	
-        FILE * shellParse = popen("grep -o -e \"Number of.*[0-9]\\+\" -e \"CPU time.*\" -e \".*SATISFIABLE\"","w");
-	
-	if(shellParse == NULL) {
-		perror("popen : ");
-		return -1;
-	}
-
-	int fd = fileno(shellParse);
-	
-	if(fd < 0 ) {
-		perror("fileno : ");
-		return -1;
-	}
-
-
-
-
-	pid_t pid = fork();
-	if(pid < 0){
-		perror("fork ");
-		return -1;
-	}
-
-
-       if(pid==0){
-            dup2(fd,1); //check if fails 
-            execl("/usr/bin/minisat","minisat",path,NULL);
-            perror("exec: ");
-	}
-        else{
-	    int status; 
-            waitpid(pid,&status,0);
-	    pclose(shellParse);
+    int i = 1; 
+    while ( argv[i] ) {
+        args[0] = argv[i++];
+        if ( callSolver( slvrpipe, args) ) {
+            perror("Unable to initialize solver.\n");
+            return 1; 
         }
-
+        wait(); 
+        puts(summarize(slvrpipe[RD])); 
     }
-   
+
+    args[0] = buffer;      
+    
+    while(1) { 
+        fgets(buffer, BUFFSIZE, STDIN_FILENO);
+        if ( callSolver( slvrpipe, args) ) {
+            perror("Unable to initialize solver.\n");
+            return 1; 
+        }
+        puts(summarize(slvrpipe[RD])); 
+    }
+} 
+
+
+int callSolver( int * slvrpipe, char *args[] ) { 
+    pid_t pid = fork(); 
+    if ( pid < 0 ) { 
+        perror("Unable to fork.\n"); 
+        return 1; 
+    } else if ( ! pid ) { 
+        dup2(slvrpipe[WR], STDOUT_FILENO);
+        execvp(SOLVER, args); 
+        return 1; 
+    }
+    return 0; 
+
 }

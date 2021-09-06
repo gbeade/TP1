@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
             close(pipes[i][SM][RD]); 
             dup2(pipes[i][MS][RD], STDIN_FILENO);
             dup2(pipes[i][SM][WR], STDOUT_FILENO);
-            execvp("./slave", args); 
+            execvp("./slave", argv); 
         } 
         close(pipes[i][MS][RD]); 
         close(pipes[i][SM][WR]); 

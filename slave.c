@@ -17,8 +17,6 @@
   #define PARSER "grep -o -e \"Number of.*[0-9]\\+\" -e \"CPU time.*\" -e \".*SATISFIABLE\""
 #endif 
 
-#define RD 0 
-#define WR 1
 #define BUFFSIZE 256 
 
 // TODO: error library - index errors 
@@ -36,7 +34,7 @@ int main(int argc, char *argv[]) {
 
         FILE * parser = popen(PARSER,"w");
         if( parser == NULL) {
-		    perror("Unable to popen the grep.\n");
+		    perror("Unable to popen the parser.\n");
 		    return -1;
 	    }
         

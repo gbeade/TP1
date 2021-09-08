@@ -1,24 +1,28 @@
 
+#define ERROR (-1)
+#define NON_ZERO 1
+
+typedef struct blockCDT * blockADT;
 
 typedef struct bufferCDT * bufferADT;
 
-bufferADT createBuffer(const char * pathname, size_t len, size_t entrySize);
+blockADT createBlock(const char * pathname, pid_t pid, size_t size);
 
-void attachBuffer(bufferADT buffer);
+bufferADT attachBuffer(int shmid, char* name);
 
 void detachBuffer(bufferADT buffer);
 
-void destroyBuffer(bufferADT buffer);
+void destroyBlock(blockADT block);
 
-int getShmid(bufferADT buffer);
+int getShmid(blockADT block);
 
-key_t getKey(bufferADT buffer);
+size_t getSize(blockADT block);
 
-size_t getSize(bufferADT buffer);
+long getOffset(bufferADT buffer);
 
 //Implemento el sistema de semafors directamente aca para tener una base, este se puede abstraer de la shmem implementando un sistema prod/cons generico
 
-void * readBuffer(bufferADT buffer);
+void readBuffer(bufferADT buffer, char* dest);
 
-void writeBuffer(bufferADT buffer);
+void writeBuffer(bufferADT buffer, char* src);
 

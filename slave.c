@@ -23,12 +23,13 @@
 int main(int argc, char *argv[]) {
 
     char buffer[BUFFSIZE]; 
+    char * r; 
 
-    while (1) {
+    do {
         // El problema con usar getline es que arma un string en el heap, que despues hay que liberar. No esta bueno, es ineficiente. 
         // Por otro lado, getline devuelve el # del buffer final; fgets no devuelve la # de caracteres repetidos
         // Por otro lado, fgets puede trabajar con un buffer en el stack
-        fgets(buffer, BUFFSIZE, stdin);
+        r = fgets(buffer, BUFFSIZE, stdin);
         int n = strlen(buffer); //INEFICIENTE! Hay que encontrar una manera de getline sin \n pero en el stack
         buffer[n-1] = '\0';  
 
@@ -58,6 +59,6 @@ int main(int argc, char *argv[]) {
             waitpid(pid,&status,0);
 	        pclose(parser);
         }
-    }
+    } while( r != NULL );
     return 0; 
 } 

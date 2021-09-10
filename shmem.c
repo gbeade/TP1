@@ -1,29 +1,38 @@
-#include <shmem.h>
+#include "shmem.h"
 #include <semaphore.h>
 #include <fcntl.h>
-#include <sem.h>
+#include <errno.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
-struct blockCDT{ 
+//TODO falta hacer las validaciones con pvs_studio, cambiar sprintf para que no de warnings
+
+typedef struct blockCDT{ 
 	int shmid;
 	key_t key;
-	size_t size;
-}
+	int size;
+} blockCDT;
 
-struct bufferCDT{
+typedef struct bufferCDT{
 	char * mem;
 	sem_t * mutex;
 	long offset;
-}
+} bufferCDT;
 
 
-blockADT createBlock(const char *pathname, pid_t pid, size_t size){
+blockADT createBlock(const char *pathname, pid_t pid, int size){
 	key_t key = ftok(pathname, pid);
 	if(key == ERROR){
 		perror("ftok could not create the key");
 		return NULL;
 	}
 
-	int shmid = shmget(key, size, IPC_CREAT | OBJ_PERMS); //TODO Hay que mirar el tema de los permisos, use los mismos que los de la clase de horacio
+	int shmid = shmget(key, size, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH | IPC_CREAT); //TODO Hay que mirar el tema de los permisos
 	if(shmid == ERROR){
 		perror("shget could not create the shmem segment");
 		return NULL;
@@ -48,10 +57,10 @@ bufferADT attachBuffer(int shmid, char* name){
 	}
 
 	//TODO Hay que ver si el nombre del semaforo se pasar como parametro o se elige uno predeterminado
-	sem_t sem;
-	if( (sem = sem_open(name, O_CREATE | O_EXCL | O_RDWR, S_IRWXU | S_IRWXG | S_IRWXO, 0)) == SEM_FAILED){
+	sem_t* sem;
+	if( (sem = sem_open(name, O_CREAT | O_EXCL | O_RDWR, S_IRWXU | S_IRWXG | S_IRWXO, 0)) == SEM_FAILED){
 	    if(errno == 17)
-		    sem_t sem = sem_open(name, O_RDWR);
+		    sem = sem_open(name, O_RDWR);
 	    else{
 		    perror("sem_open could not open the semaphore");
 		    return NULL;
@@ -102,7 +111,7 @@ int getShmid(blockADT block){
 	return block->shmid;
 }
 
-size_t getSize(blockADT block){
+int getSize(blockADT block){
 	return block->size;
 }
 

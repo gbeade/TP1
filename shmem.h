@@ -1,3 +1,8 @@
+#ifndef SHMEM_H
+#define SHMEM_H
+
+#define _SVID_SOURCE 1
+#include "sem.h"
 
 #define ERROR (-1)
 #define NON_ZERO 1
@@ -6,7 +11,7 @@ typedef struct blockCDT * blockADT;
 
 typedef struct bufferCDT * bufferADT;
 
-blockADT createBlock(const char * pathname, pid_t pid, size_t size);
+blockADT createBlock(const char * pathname, pid_t pid, int size);
 
 bufferADT attachBuffer(int shmid, char* name);
 
@@ -16,7 +21,7 @@ void destroyBlock(blockADT block);
 
 int getShmid(blockADT block);
 
-size_t getSize(blockADT block);
+int getSize(blockADT block);
 
 long getOffset(bufferADT buffer);
 
@@ -26,3 +31,4 @@ void readBuffer(bufferADT buffer, char* dest);
 
 void writeBuffer(bufferADT buffer, char* src);
 
+#endif

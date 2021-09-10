@@ -1,6 +1,10 @@
-
-#include <sem.h>
+#include "sem.h"
+#include <fcntl.h>
+#include <errno.h>
+#include <stddef.h>
+#include <stdlib.h>
 #include <stdio.h>
+#include <semaphore.h>
 
 int writeSem(sem_t* sem, char* src, char* dest){
         sem_post(sem);

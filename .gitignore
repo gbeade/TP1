@@ -1,2 +1,5 @@
 *.o
 test*
+Makefile.test
+.bash_history
+.config/

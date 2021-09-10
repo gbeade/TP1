@@ -15,11 +15,11 @@
 #define WR 1
 
 #define MAXPATH 256
-#QSLAVES 2
+#define QSLAVES 2
 
-void closeOther(int me , int fd[QSLAVES][2][]);
+void closeOther(int me , int fd[QSLAVES][2][2]);
 int  convert( char * src , char * dest);
-void initializeSet(fd_set * set, int  fd[QSLAVES][2][2]);  // inline? 
+void initializeSet(fd_set * set, int  fd[QSLAVES][2][2]);  
 
 // TODO: create share memory. Application prints the name for said buffer
 // TODO: al principio, enviar dos o mas tareas inicialmente a cada slave
@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
 	
 	for (int i=0; i<QSLAVES; i++) 
 		for (int j=0; j<2; j++)
-			if ( pipe(pipes[i][j]) < 0 ) {
+			if (pipe(pipes[i][j]) < 0) {
 				perror("Unable to create pipe at master\n"); 
 				return 1; 
 			}  
@@ -41,13 +41,12 @@ int main(int argc, char *argv[]) {
 	pid_t spids[QSLAVES];     
 	char * args[] = {"./slave",NULL}; 
 	
-
 	for (int i=0; i<QSLAVES; i++) {
 		spids[i] = fork(); 
-		if ( spids[i] == -1 ) { 
+		if (spids[i] == -1) { 
 			perror("Unable to fork\n"); 
 			return 1; 
-		} else if ( !spids[i] ) {
+		} else if (!spids[i]) {
 			closeOther(i,pipes);
 			close(pipes[i][MS][WR]); 
 			close(pipes[i][SM][RD]); 
@@ -66,10 +65,10 @@ int main(int argc, char *argv[]) {
 	int active = QSLAVES;
 	int currentPathIndex = 1;
 	char pass[50];
-	for( int i = 0 ; i < QSLAVES ; i++){
-		if( currentPathIndex < argc ){
+	for(int i = 0 ; i < QSLAVES ; i++){
+		if(currentPathIndex < argc){
 			int count = convert(argv[currentPathIndex],pass);
-			if( write ( pipes[i][MS][WR] , pass , count ) != count)
+			if (write(pipes[i][MS][WR] , pass , count) != count)
 				printf("Write goes wrong\n");
 			currentPathIndex++;
 		} else {
@@ -84,15 +83,16 @@ int main(int argc, char *argv[]) {
 	fd_set readings;
 	initializeSet(&readings, pipes);
 
-	int resfd = open("resultado",O_RDWR | O_CREAT,S_IRWXU);
+	int resfd = open("resultado", O_RDWR|O_CREAT, S_IRWXU);
 
 	int updated;
 	while(active){
-		updated = select( FD_SETSIZE ,&readings ,NULL ,NULL,NULL); 
+		updated = select(FD_SETSIZE, &readings, NULL, NULL, NULL); 
+
 	   	for (int i = 0 ; i < QSLAVES && updated ; i++) {
-			if( FD_ISSET(pipes[i][SM][RD],&readings)) {
+			if(FD_ISSET(pipes[i][SM][RD], &readings)) {
 				updated--;		
-				if( currentPathIndex < argc ){
+				if(currentPathIndex < argc){
 					int count = convert(argv[currentPathIndex],pass);
 					write(pipes[i][MS][WR],pass,count);					
 					currentPathIndex++;
@@ -105,32 +105,32 @@ int main(int argc, char *argv[]) {
 		}
 
 		for(int i = 0 ; i < QSLAVES ; i++){
-			if( FD_ISSET(pipes[i][SM][RD],&readings) ){
+			if(FD_ISSET(pipes[i][SM][RD],&readings)){
 				char tr[300];
 				int readC = read(pipes[i][SM][RD],tr,300);
-				dprintf(resfd,"Proccess number:\t%d\n",spids[i]);
+				dprintf(resfd,"Process number:\t%d\n",spids[i]);
 				write(resfd,tr,readC);
-			}	
+			}
 		} 
 		initializeSet(&readings,pipes);
 	}
 
-
-	for ( int i = 0 ; i < QSLAVES ; i++){
+	for (int i = 0 ; i < QSLAVES ; i++){
 		waitpid(spids[i],NULL,0);
 	}
 }
 
-void initializeSet(fd_set *  set, int  fd[QSLAVES][2][]){
+
+void initializeSet(fd_set *  set, int  fd[QSLAVES][2][2]){
 	FD_ZERO(set);
 	for(int i = 0 ; i < QSLAVES ; i++) {
-		if(fd[i][MS][WR] > 0 ) 
+		if(fd[i][MS][WR] > 0) 
 			FD_SET(fd[i][SM][RD], set);		
 	} 
 }
 
-void closeOther(int me , int fd[QSLAVES][2][]){
-	for(int i = 0 ; i < me ; i++){
+void closeOther(int me , int fd[QSLAVES][2][2]){
+	for (int i = 0 ; i < me ; i++){
 		close(fd[i][SM][RD]);
 		close(fd[i][SM][WR]);
 		close(fd[i][MS][RD]);
@@ -138,9 +138,9 @@ void closeOther(int me , int fd[QSLAVES][2][]){
 	}	
 }
 
-int convert( char * src , char * dest) {
+int convert(char * src , char * dest) {
 	int i = 0 ; 
-	while(src[i]){
+	while (src[i]) {
 		dest[i]=src[i];
 		i++;	
 	}

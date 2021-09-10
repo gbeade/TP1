@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 //TODO falta hacer las validaciones con pvs_studio, cambiar sprintf para que no de warnings
 
@@ -25,8 +26,8 @@ typedef struct bufferCDT{
 } bufferCDT;
 
 
-blockADT createBlock(const char *pathname, pid_t pid, int size){
-	key_t key = ftok(pathname, pid);
+blockADT createBlock(const char *pathname, int size){
+	key_t key = ftok(pathname, getpid());
 	if(key == ERROR){
 		perror("ftok could not create the key");
 		return NULL;

@@ -7,6 +7,7 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <sys/time.h>
+#include "shmem.h"
 
  
 #define MS 0 
@@ -14,6 +15,7 @@
 #define RD 0 
 #define WR 1
 
+#define SEM_NAME "LoCoco"
 #define MAXPATH 256
 #define QSLAVES 2
 
@@ -79,6 +81,13 @@ int main(int argc, char *argv[]) {
 	}
 
 
+	blockADT block = createBlock(argv[0], getpid(), argc*300); 
+	bufferADT buffer = attachBuffer(getShmid(block), SEM_NAME);
+
+	printf("%d\n", getShmid(block));
+	sleep(2);
+
+
 	// Recurrent shipment of files to slaves 
 	fd_set readings;
 	initializeSet(&readings, pipes);
@@ -107,7 +116,9 @@ int main(int argc, char *argv[]) {
 		for(int i = 0 ; i < QSLAVES ; i++){
 			if(FD_ISSET(pipes[i][SM][RD],&readings)){
 				char tr[300];
-				int readC = read(pipes[i][SM][RD],tr,300);
+				int offset = sprintf(tr, "Process number:\t%d\n", spids[i]);
+				int readC = read(pipes[i][SM][RD],tr+offset+1,300); //TODO mirar que este bien la cantidad del off
+				writeBuffer(buffer, tr);
 				dprintf(resfd,"Process number:\t%d\n",spids[i]);
 				write(resfd,tr,readC);
 			}
@@ -118,6 +129,9 @@ int main(int argc, char *argv[]) {
 	for (int i = 0 ; i < QSLAVES ; i++){
 		waitpid(spids[i],NULL,0);
 	}
+
+	detachBuffer(buffer);
+	destroyBlock(block); //TODO Hay que ver que no lo trate de destruir antes que la vista lo detachee
 }
 
 

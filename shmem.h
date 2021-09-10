@@ -11,7 +11,7 @@ typedef struct blockCDT * blockADT;
 
 typedef struct bufferCDT * bufferADT;
 
-blockADT createBlock(const char * pathname, pid_t pid, int size);
+blockADT createBlock(const char * pathname, int size);
 
 bufferADT attachBuffer(int shmid, char* name);
 

@@ -32,6 +32,10 @@ int main(int argc, char *argv[]) {
         r = fgets(buffer, BUFFSIZE, stdin);
         int n = strlen(buffer); //INEFICIENTE! Hay que encontrar una manera de getline sin \n pero en el stack
         buffer[n-1] = '\0';  
+	
+	if( r == NULL ) //error or end of file.
+		return 0; 
+
 
         FILE * parser = popen(PARSER,"w");
         if( parser == NULL) {

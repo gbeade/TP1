@@ -22,16 +22,11 @@
 // TODO: error library - index errors 
 int main(int argc, char *argv[]) {
 
-	char buffer[BUFFSIZE]; 
-	char * r; 
+	char buffer[BUFFSIZE];  
 
-	do {
-		r = fgets(buffer, BUFFSIZE, stdin);
+	while ( fgets(buffer, BUFFSIZE, stdin) != NULL ) {
 		int n = strlen(buffer); //INEFICIENTE! 
 		buffer[n-1] = '\0';  
-	
-		if( r == NULL ) //error or end of file.
-			return 0; 
 
 		FILE * parser = popen(PARSER,"w");
 		if( parser == NULL) {
@@ -59,6 +54,6 @@ int main(int argc, char *argv[]) {
 			waitpid(pid,&status,0);
 			pclose(parser);
 		}
-	} while( r != NULL );
+	}
 	return 0; 
 } 

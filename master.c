@@ -126,6 +126,7 @@ int main(int argc, char *argv[]) {
 				char tr[300];
 				int offset = sprintf(tr, "Process number:\t%d\n", spids[i]);
 				int readC = read(pipes[i][SM][RD],tr+offset,300); 
+				tr[readC+offset]=0;
 				writeBuffer(buffer, tr);
 				write(resfd,tr,readC+offset);
 			}

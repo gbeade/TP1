@@ -5,23 +5,25 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <semaphore.h>
+#include <string.h>
+
+static int copy(char * src , char * dest);
+
 
 int writeSem(sem_t* sem, char* src, char* dest){
         sem_post(sem);
-        int offset = sprintf(dest, src);
-	if(offset < 0) perror("sprintf failed at writeSem");
-	return offset;
+	return copy(src,dest);
 }
 
 int readSem(sem_t* sem, char* src, char* dest){
         sem_wait(sem);
-        int offset = sprintf(dest,"%s", src);
-	if(offset < 0) perror("sprintf failed at readSem");
-	return offset;
+	return copy(src,dest);
+	
+
+
 }
 
-//algo asi
-int aux(char * src , char * dest){
+static int copy(char * src , char * dest){
 	int offset = sprintf(dest,"%s",src);
 	if(offset < 0 ) return -1;
 	return offset;

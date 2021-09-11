@@ -13,6 +13,8 @@
 
 //TODO falta hacer las validaciones con pvs_studio, cambiar sprintf para que no de warnings
 
+static void checkOffset(int newOffset,bufferADT buffer);
+
 typedef struct blockCDT{ 
 	int shmid;
 	key_t key;
@@ -105,12 +107,21 @@ void destroyMem(int shmid){
 
 
 void writeBuffer(bufferADT buffer, char* src){
-	buffer->offset += writeSem(buffer->mutex, src, buffer->mem + buffer->offset) + 1;
+	int newOffset = writeSem(buffer->mutex, src, buffer->mem + buffer->offset) + 1;
+	checkOffset(newOffset,buffer);
 }
 
 void readBuffer(bufferADT buffer, char* dest){
-	buffer->offset += readSem(buffer->mutex, buffer->mem + buffer->offset, dest) + 1;
+	int newOffset = readSem(buffer->mutex, buffer->mem + buffer->offset, dest) + 1;
+	checkOffset(newOffset,buffer);
 }
+
+static void checkOffset(int newOffset,bufferADT buffer){
+	if(newOffset < 0 ) 
+		perror("reading shmem : ");
+	else buffer->offset += newOffset; 
+}
+
 
 int getShmid(blockADT block){
 	return block->shmid;

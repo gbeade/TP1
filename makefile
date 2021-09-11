@@ -4,8 +4,12 @@ OBJS= master.o shmem.o sem.o
 
 all:master
 
-master:$(OBJS) slave
+master:$(OBJS) slave view
 	$(CC) $(OBJS) -o master -pthread 
+
+view:shmem.o sem.o view.o
+	$(CC) shmem.o sem.o view.o -o view -pthread
+
 
 slave:slave.o
 	$(CC) slave.o -o slave 
@@ -17,6 +21,8 @@ shmem.o:shmem.c sem.h
 
 sem.o:sem.c
 
+view.o:view.c
+
 clean:
-	rm *.o slave master resultado 
+	rm *.o slave master view resultado 
 

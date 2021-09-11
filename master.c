@@ -19,7 +19,7 @@
 
 #define SEM_NAME "LoCoco"
 #define MAXPATH 256
-#define QSLAVES 2
+#define QSLAVES 5
 
 
 
@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
 		close(pipes[i][SM][WR]); 
 	}
 
-	sleep(15);
+	//sleep(15);
 
 
 	// First shipment of files to slaves 
@@ -89,7 +89,11 @@ int main(int argc, char *argv[]) {
 	bufferADT buffer = attachBuffer(getShmid(block), SEM_NAME);
 
 	printf("%d\n", getShmid(block));
-	sleep(2);
+	char argno[5];
+	sprintf(argno,"%d",argc-1);
+	writeBuffer(buffer,argno);
+
+	sleep(10);
 
 
 	// Recurrent shipment of files to slaves 
@@ -121,10 +125,9 @@ int main(int argc, char *argv[]) {
 			if(FD_ISSET(pipes[i][SM][RD],&readings)){
 				char tr[300];
 				int offset = sprintf(tr, "Process number:\t%d\n", spids[i]);
-				int readC = read(pipes[i][SM][RD],tr+offset+1,300); //TODO mirar que este bien la cantidad del off
+				int readC = read(pipes[i][SM][RD],tr+offset,300); 
 				writeBuffer(buffer, tr);
-				dprintf(resfd,"Process number:\t%d\n",spids[i]);
-				write(resfd,tr,readC);
+				write(resfd,tr,readC+offset);
 			}
 		} 
 		initializeSet(&readings,pipes);
@@ -135,7 +138,8 @@ int main(int argc, char *argv[]) {
 	}
 
 	detachBuffer(buffer);
-	destroyBlock(block); //TODO Hay que ver que no lo trate de destruir antes que la vista lo detachee
+//	destroyBlock(block); //TODO Hay que ver que no lo trate de destruir antes que la vista lo detachee
+
 }
 
 

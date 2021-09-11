@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE  200809L
+
 #include <stdio.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -18,6 +20,8 @@
 #define SEM_NAME "LoCoco"
 #define MAXPATH 256
 #define QSLAVES 2
+
+
 
 void closeOther(int me , int fd[QSLAVES][2][2]);
 int  convert( char * src , char * dest);

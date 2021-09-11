@@ -92,13 +92,17 @@ void detachBuffer(bufferADT buffer){
 }
 
 void destroyBlock(blockADT block){
-	if(shmctl(block->shmid, IPC_RMID, NULL) == ERROR){
-		perror("shmctl could not distroy the shmem segment");
-		return;
-	}
-
 	free(block);
 }
+
+void destroyMem(int shmid){
+	if( shmctl(shmid , IPC_RMID , NULL) == ERROR){
+		perror("shmctl could not distroy the shmem segment");
+		return; 	
+	}
+}
+
+
 
 void writeBuffer(bufferADT buffer, char* src){
 	buffer->offset += writeSem(buffer->mutex, src, buffer->mem + buffer->offset) + 1;

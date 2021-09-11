@@ -138,7 +138,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	detachBuffer(buffer);
-//	destroyBlock(block); //TODO Hay que ver que no lo trate de destruir antes que la vista lo detachee
 
 }
 

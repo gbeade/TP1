@@ -37,7 +37,7 @@ int main(int argc , char * argv[]){
 	}
 
 	detachBuffer(buffer);
-
+	destroyMem(key);
 
 
 

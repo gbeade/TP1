@@ -15,8 +15,15 @@ int writeSem(sem_t* sem, char* src, char* dest){
 
 int readSem(sem_t* sem, char* src, char* dest){
         sem_wait(sem);
-        int offset =  sprintf(dest, src);
+        int offset = sprintf(dest,"%s", src);
 	if(offset < 0) perror("sprintf failed at readSem");
+	return offset;
+}
+
+//algo asi
+int aux(char * src , char * dest){
+	int offset = sprintf(dest,"%s",src);
+	if(offset < 0 ) return -1;
 	return offset;
 }
 

@@ -25,8 +25,6 @@ int getSize(blockADT block);
 
 long getOffset(bufferADT buffer);
 
-void destroyMem(int shmid);
-
 //Implemento el sistema de semafors directamente aca para tener una base, este se puede abstraer de la shmem implementando un sistema prod/cons generico
 
 void readBuffer(bufferADT buffer, char* dest);

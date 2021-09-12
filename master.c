@@ -67,6 +67,7 @@ int main(int argc, char *argv[]) {
 	blockADT block = createBlock(argv[0], argc*MAXQUERY); 
 	bufferADT buffer = attachBuffer(getShmid(block), SEM_NAME);
 	printf("%d\n", getShmid(block));
+	fflush(stdout); 
 	sendFilesNo(buffer,argc);
 	sleep(WAITINGVIEW);
 

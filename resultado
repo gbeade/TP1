@@ -1,0 +1,100 @@
+Process number:	140
+Number of variables:           100
+Number of clauses:             850
+CPU time              : 0.012366 s
+SATISFIABLE
+Process number:	141
+Number of variables:           100
+Number of clauses:             850
+CPU time              : 0.00988 s
+UNSATISFIABLE
+Process number:	142
+Number of variables:           100
+Number of clauses:             850
+CPU time              : 0.012746 s
+UNSATISFIABLE
+Process number:	143
+Number of variables:           100
+Number of clauses:             850
+CPU time              : 0.011734 s
+SATISFIABLE
+Process number:	144
+Number of variables:           100
+Number of clauses:             850
+CPU time              : 0.012315 s
+UNSATISFIABLE
+Process number:	141
+Number of variables:           100
+Number of clauses:             850
+CPU time              : 0.025717 s
+UNSATISFIABLE
+Process number:	140
+Number of variables:           100
+Number of clauses:             850
+CPU time              : 0.021466 s
+UNSATISFIABLE
+Process number:	143
+Number of variables:           100
+Number of clauses:             850
+CPU time              : 0.016898 s
+SATISFIABLE
+Process number:	144
+Number of variables:           100
+Number of clauses:             850
+CPU time              : 0.015673 s
+UNSATISFIABLE
+Process number:	142
+Number of variables:           100
+Number of clauses:             850
+CPU time              : 0.031073 s
+UNSATISFIABLE
+Process number:	142
+Number of variables:           100
+Number of clauses:             850
+CPU time              : 0 s
+UNSATISFIABLE
+Process number:	143
+Number of variables:           100
+Number of clauses:             850
+CPU time              : 0.006172 s
+UNSATISFIABLE
+Process number:	140
+Number of variables:           100
+Number of clauses:             850
+CPU time              : 0 s
+UNSATISFIABLE
+Process number:	141
+Number of variables:           100
+Number of clauses:             850
+CPU time              : 0.022541 s
+UNSATISFIABLE
+Process number:	144
+Number of variables:           100
+Number of clauses:             850
+CPU time              : 0.028006 s
+UNSATISFIABLE
+Process number:	140
+Number of variables:           100
+Number of clauses:             850
+CPU time              : 0 s
+SATISFIABLE
+Process number:	142
+Number of variables:           100
+Number of clauses:             850
+CPU time              : 0 s
+UNSATISFIABLE
+Process number:	143
+Number of variables:           100
+Number of clauses:             850
+CPU time              : 0.011167 s
+UNSATISFIABLE
+Process number:	141
+Number of variables:           100
+Number of clauses:             850
+CPU time              : 0.020599 s
+UNSATISFIABLE
+Process number:	144
+Number of variables:           100
+Number of clauses:             850
+CPU time              : 0 s
+UNSATISFIABLE

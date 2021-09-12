@@ -12,6 +12,7 @@
 #include "shmem.h"
 #include <fcntl.h>
  
+#define SLAVEPATH "./slave" 
 #define MS 0 
 #define SM 1 
 #define RD 0 
@@ -20,125 +21,67 @@
 #define SEM_NAME "LoCoco"
 #define MAXPATH 256
 #define QSLAVES 5
+#define MAXQUERY 300
+#define WAITINGVIEW 10
 
 
 
-void closeOther(int me , int fd[QSLAVES][2][2]);
-int  convert( char * src , char * dest);
+int  changeFormat( char * src , char * dest);
 void initializeSet(fd_set * set, int  fd[QSLAVES][2][2]);  
 
-// TODO: create share memory. Application prints the name for said buffer
-// TODO: al principio, enviar dos o mas tareas inicialmente a cada slave
-// TODO: 
+int createPipes( int pipes[QSLAVES][2][2] );
+int createSlaves(pid_t ids[QSLAVES] , int pipes[QSLAVES][2][2]);
+void closeOther(int me , int fd[QSLAVES][2][2]);
+void assignPath(int * currentPathIndex , int * active, int argc , int slaveIdx, int pipes[QSLAVES][2][2],char * argv[]);
+void sendFilesNo(bufferADT buffer , int argc);
+void waitSlaves(pid_t slvids[QSLAVES]);
+void WriteResults(int slvids[QSLAVES] , int pipes[QSLAVES][2][2] , int * currentPathIndex , int * active , bufferADT buffer , int Resultadofd , int argvc,char * argv[]);
+void deployResults(int ReadingPipe , int slvids[QSLAVES], bufferADT buffer , int Resultadofd, int idx);
+
 int main(int argc, char *argv[]) {
   
 	   
 	// Slave, flow direction, read|write
 	int pipes[QSLAVES][2][2]; // pipes[slave_id][ MS | SM ][ RD | WR ]
 	
-	for (int i=0; i<QSLAVES; i++) 
-		for (int j=0; j<2; j++)
-			if (pipe(pipes[i][j]) < 0) {
-				perror("Unable to create pipe at master\n"); 
-				return 1; 
-			}  
-   
-	
-	pid_t spids[QSLAVES];     
-	char * args[] = {"./slave",NULL}; 
-	
-	for (int i=0; i<QSLAVES; i++) {
-		spids[i] = fork(); 
-		if (spids[i] == -1) { 
-			perror("Unable to fork\n"); 
-			return 1; 
-		} else if (!spids[i]) {
-			closeOther(i,pipes);
-			close(pipes[i][MS][WR]); 
-			close(pipes[i][SM][RD]); 
-			dup2(pipes[i][MS][RD], STDIN_FILENO);
-			dup2(pipes[i][SM][WR], STDOUT_FILENO);
-			execvp("./slave", args); 
-		} 
-		close(pipes[i][MS][RD]); 
-		close(pipes[i][SM][WR]); 
+	if( createPipes(pipes) < 0 ){
+		printf("Pipes could not be created");
+		return -1;
 	}
+	
+	pid_t slvids[QSLAVES];     
+	if( createSlaves(slvids,pipes) < 0 ) {
+		printf("Slaves could not be created");
+		return -1;
+	}
+	
 
-	//sleep(15);
-
-
-	// First shipment of files to slaves 
-	int active = QSLAVES;
+	int activeSlaves = QSLAVES;
 	int currentPathIndex = 1;
-	char pass[50];
-	for(int i = 0 ; i < QSLAVES ; i++){
-		if(currentPathIndex < argc){
-			int count = convert(argv[currentPathIndex],pass);
-			if (write(pipes[i][MS][WR] , pass , count) != count)
-				printf("Write goes wrong\n");
-			currentPathIndex++;
-		} else {
-			close(pipes[i][MS][WR]);
-			pipes[i][MS][WR]=-1;
-			active--;
-		}
-	}
+	
+	for(int i = 0 ; i < QSLAVES ; i++)
+		assignPath(&currentPathIndex ,&activeSlaves,argc , i , pipes,argv);
+		
 
 
-	blockADT block = createBlock(argv[0], argc*300); 
+	blockADT block = createBlock(argv[0], argc*MAXQUERY); 
 	bufferADT buffer = attachBuffer(getShmid(block), SEM_NAME);
-
 	printf("%d\n", getShmid(block));
-	char argno[5];
-	sprintf(argno,"%d",argc-1);
-	writeBuffer(buffer,argno);
+	sendFilesNo(buffer,argc);
+	sleep(WAITINGVIEW);
 
-	sleep(10);
-
-
-	// Recurrent shipment of files to slaves 
-	fd_set readings;
-	initializeSet(&readings, pipes);
-
-	int resfd = open("resultado", O_RDWR|O_CREAT, S_IRWXU);
-
-	int updated;
-	while(active){
-		updated = select(FD_SETSIZE, &readings, NULL, NULL, NULL); 
-
-	   	for (int i = 0 ; i < QSLAVES && updated ; i++) {
-			if(FD_ISSET(pipes[i][SM][RD], &readings)) {
-				updated--;		
-				if(currentPathIndex < argc){
-					int count = convert(argv[currentPathIndex],pass);
-					write(pipes[i][MS][WR],pass,count);					
-					currentPathIndex++;
-				} else { 
-					close(pipes[i][MS][WR]);
-					pipes[i][MS][WR]=-1;
-					active--;
-				}
-			}
-		}
-
-		for(int i = 0 ; i < QSLAVES ; i++){
-			if(FD_ISSET(pipes[i][SM][RD],&readings)){
-				char tr[300];
-				int offset = sprintf(tr, "Process number:\t%d\n", spids[i]);
-				int readC = read(pipes[i][SM][RD],tr+offset,300); 
-				tr[readC+offset]=0;
-				writeBuffer(buffer, tr);
-				write(resfd,tr,readC+offset);
-			}
-		} 
-		initializeSet(&readings,pipes);
+	int Resultadofd;
+	if( ( Resultadofd = open("resultado", O_RDWR|O_CREAT, S_IRWXU) ) < 0 )  {
+		printf("Resultado file could be created");
 	}
 
-	for (int i = 0 ; i < QSLAVES ; i++){
-		waitpid(spids[i],NULL,0);
-	}
+    	WriteResults(slvids , pipes ,  &currentPathIndex ,  &activeSlaves , buffer ,  Resultadofd,argc,argv);
 
+	waitSlaves(slvids);
+	
 	detachBuffer(buffer);
+
+	destroyBlock(block);
 
 }
 
@@ -160,7 +103,7 @@ void closeOther(int me , int fd[QSLAVES][2][2]){
 	}	
 }
 
-int convert(char * src , char * dest) {
+int changeFormat(char * src , char * dest){
 	int i = 0 ; 
 	while (src[i]) {
 		dest[i]=src[i];
@@ -169,4 +112,104 @@ int convert(char * src , char * dest) {
 	dest[i++]='\n';
 	dest[i]=0;
 	return i ;
+}
+
+
+int createPipes( int pipes[QSLAVES][2][2] ){
+	for (int i=0; i<QSLAVES; i++) 
+		for (int j=0; j<2; j++)
+			if (pipe(pipes[i][j]) < 0) {
+				perror("Unable to create pipe at master\n"); 
+				return -1; 
+			}  
+	return 0;
+}
+
+int createSlaves(pid_t slvids[QSLAVES] , int pipes[QSLAVES][2][2]){
+	char * args[] = {SLAVEPATH,NULL}; 
+	for (int i=0; i<QSLAVES; i++) {
+		slvids[i] = fork(); 
+		if (slvids[i] == -1) { 
+			return -1; 
+		} else if (!slvids[i]) {
+			closeOther(i,pipes);
+			close(pipes[i][MS][WR]); 
+			close(pipes[i][SM][RD]); 
+			if ( dup2(pipes[i][MS][RD], STDIN_FILENO) < 0  || dup2(pipes[i][SM][WR], STDOUT_FILENO) < 0 ) 
+				return -1;
+			execvp(SLAVEPATH, args); 
+		} 
+		close(pipes[i][MS][RD]); 
+		close(pipes[i][SM][WR]); 
+	}
+	return 0;
+}
+
+
+void assignPath(int * currentPathIndex , int * active, int argc , int slaveIdx, int pipes[QSLAVES][2][2], char * argv[]){
+
+	char pass[50];
+	if( *currentPathIndex < argc){
+			int count = changeFormat(argv[*currentPathIndex],pass);
+			if (write( pipes[slaveIdx][MS][WR] , pass , count) != count)
+				printf("Write goes wrong\n");
+			(*currentPathIndex)++;
+		} else {
+			close(pipes[slaveIdx][MS][WR]);
+			pipes[slaveIdx][MS][WR]=-1;
+			(*active)--;
+		}
+
+
+}
+
+
+void sendFilesNo(bufferADT buffer,int argc){
+	char argno[5];
+	sprintf(argno,"%d",argc-1);
+	writeBuffer(buffer,argno);
+}
+
+void waitSlaves(pid_t slvids[QSLAVES]){
+	for (int i = 0 ; i < QSLAVES ; i++)
+		waitpid(slvids[i],NULL,0);	
+}
+
+
+void WriteResults(int slvids[QSLAVES], int pipes[QSLAVES][2][2],int * currentPathIndex,int * active , bufferADT buffer , int Resultadofd,int argc,char * argv[]){
+	fd_set readings;
+	initializeSet(&readings, pipes);
+	int updated;
+	while(*active){
+		updated = select(FD_SETSIZE, &readings, NULL, NULL, NULL); 
+
+	   	for (int i = 0 ; i < QSLAVES && updated ; i++) 
+			if(FD_ISSET(pipes[i][SM][RD], &readings)) {
+				updated--;	
+				assignPath(currentPathIndex ,active,argc , i , pipes,argv);
+			}
+		
+
+		for(int i = 0 ; i < QSLAVES ; i++){
+			if(FD_ISSET(pipes[i][SM][RD],&readings)){
+				deployResults(pipes[i][SM][RD],slvids,buffer,Resultadofd,i);
+			}
+		} 
+
+		initializeSet(&readings,pipes);
+	}
+
+
+}
+
+
+void deployResults(int ReadingPipe , int slvids[QSLAVES], bufferADT buffer , int Resultadofd,int idx){
+	char InterBuffer[MAXQUERY];
+	int offset = sprintf(InterBuffer, "Process number:\t%d\n", slvids[idx]);
+	int readChar = read(ReadingPipe,InterBuffer + offset,MAXQUERY); 
+	InterBuffer[readChar+offset]=0;
+	writeBuffer(buffer, InterBuffer);
+	write(Resultadofd,InterBuffer,readChar + offset);
+
+
 }

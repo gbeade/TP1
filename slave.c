@@ -22,41 +22,75 @@
 
 #define BUFFSIZE 256 
 
-// TODO: error library - index errors 
+
+char * getPath(char * path);
+pid_t callSolver(char * buffer , int parserStdin );
+
+
 int main(int argc, char *argv[]) {
 
 	char buffer[BUFFSIZE];  
+	FILE * parser;	
+	int parserStdin;
+	pid_t solverId;
+	int status;
 
-	while ( fgets(buffer, BUFFSIZE, stdin) != NULL ) {
-		int n = strlen(buffer); //INEFICIENTE! 
-		buffer[n-1] = '\0';  
+	while (  getPath(buffer) != NULL ) {
 
-		FILE * parser = popen(PARSER,"w");
-		if( parser == NULL) {
-			perror("Unable to popen the parser.\n");
+		 if( ( parser = popen(PARSER,"w") ) == NULL){
+			perror("Unable to open the parser : ");	
 			return -1;
 		}
+		parserStdin = fileno(parser);		
+
+		solverId = callSolver(buffer,parserStdin);
+	       	if(solverId < 0 ){
+			perror("Solver could not be open : ");
+			return -1;
+		} 
+
+		waitpid(solverId,&status,0);
+		pclose(parser);
 		
-		int fd = fileno(parser);
-		if(fd < 0 ) {
-			perror("Unable to fileno\n");
-			return -1;
-		}
-
-		pid_t pid = fork();
-		if ( pid < 0 ){
-			perror("Unable to fork\n");
-			return -1;
-		} else if(pid==0){
-			dup2(fd, STDOUT_FILENO); //check if fails 
-			execl(SOLVER, SOLVER, buffer, NULL);
-			perror("Unable to exec solver\n");
-			return -1; 
-		} else{
-			int status; 
-			waitpid(pid,&status,0);
-			pclose(parser);
-		}
 	}
 	return 0; 
 } 
+
+char * getPath(char path[BUFFSIZE]){
+	if( fgets(path,BUFFSIZE,stdin) == NULL)
+		return NULL;
+	int n = strlen(path);
+	path[n-1]=0;	
+	return path;
+	
+}
+
+pid_t callSolver(char * buffer , int parserStdin ) {
+	pid_t pid = fork();
+	if( pid < 0 ) 
+		return -1;
+	else if(pid==0){
+		if ( dup2(parserStdin, STDOUT_FILENO) < 0) 
+		       return -1;		
+		execl(SOLVER, SOLVER, buffer, NULL);
+		return -1; 
+	}
+	return pid;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

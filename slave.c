@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
 	char buffer[BUFFSIZE];  
 	FILE * parser;	
 	int parserfd;
-	pid_t solverId;
+	pid_t solverpid;
 	int status;
 
 	while (getPath(buffer) != NULL) {
@@ -44,8 +44,8 @@ int main(int argc, char *argv[]) {
 
 		parserfd = fileno(parser);		
 
-		pid_t solverpid = callSolver(buffer, parserfd);
-	    if(solverId < 0 ){
+		solverpid = callSolver(buffer, parserfd);
+	    if(solverpid < 0 ){
 			perror("Solver could not be open\n");
 			return -1;
 		} 

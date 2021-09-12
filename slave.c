@@ -31,52 +31,50 @@ int main(int argc, char *argv[]) {
 
 	char buffer[BUFFSIZE];  
 	FILE * parser;	
-	int parserStdin;
+	int parserfd;
 	pid_t solverId;
 	int status;
 
-	while (  getPath(buffer) != NULL ) {
+	while (getPath(buffer) != NULL) {
 
 		 if( ( parser = popen(PARSER,"w") ) == NULL){
-			perror("Unable to open the parser : ");	
+			perror("Unable to open the parser\n");	
 			return -1;
 		}
-		parserStdin = fileno(parser);		
 
-		solverId = callSolver(buffer,parserStdin);
-	       	if(solverId < 0 ){
-			perror("Solver could not be open : ");
+		parserfd = fileno(parser);		
+
+		pid_t solverpid = callSolver(buffer, parserfd);
+	    if(solverId < 0 ){
+			perror("Solver could not be open\n");
 			return -1;
 		} 
 
-		waitpid(solverId,&status,0);
+		waitpid(solverpid,&status,0);
 		pclose(parser);
-		
 	}
 	return 0; 
 } 
 
 char * getPath(char path[BUFFSIZE]){
-	if( fgets(path,BUFFSIZE,stdin) == NULL)
+	if( fgets(path, BUFFSIZE, stdin) == NULL)
 		return NULL;
 	int n = strlen(path);
 	path[n-1]=0;	
 	return path;
-	
 }
 
-pid_t callSolver(char * buffer , int parserStdin ) {
+pid_t callSolver(char * buffer , int parserfd) {
 	pid_t pid = fork();
 	if( pid < 0 ) 
 		return -1;
 	else if(pid==0){
-		if ( dup2(parserStdin, STDOUT_FILENO) < 0) 
+		if ( dup2(parserfd, STDOUT_FILENO) < 0) 
 		       return -1;		
 		execl(SOLVER, SOLVER, buffer, NULL);
 		return -1; 
 	}
 	return pid;
-
 }
 
 

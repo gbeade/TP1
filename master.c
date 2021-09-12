@@ -40,8 +40,6 @@ void deployResults(char * results, bufferADT buffer, int resultfd, int size);
 void closeOther(int me , int fd[QSLAVES][2][2]);
 int  appendNewline(char * src , char * dest);
 
-
-
 int main(int argc, char *argv[]) {
   
 	   
@@ -120,6 +118,7 @@ void initializeSet(fd_set *  set, int  fd[QSLAVES][2][2]){
 			FD_SET(fd[i][SM][RD], set);		
 	} 
 }
+
 int createPipes( int pipes[QSLAVES][2][2] ){
 	for (int i=0; i<QSLAVES; i++) 
 		for (int j=0; j<2; j++)
@@ -127,6 +126,7 @@ int createPipes( int pipes[QSLAVES][2][2] ){
 				return -1;   
 	return 0;
 }
+
 int createSlaves(pid_t slvids[QSLAVES] , int pipes[QSLAVES][2][2]){
 	char * args[] = {SLAVEPATH,NULL}; 
 	for (int i=0; i<QSLAVES; i++) {
@@ -176,6 +176,7 @@ int appendNewline(char * src , char * dest){
 	dest[i]=0;
 	return i ;
 }
+
 void closeOther(int me , int fd[QSLAVES][2][2]){
 	for (int i = 0 ; i < me ; i++){
 		close(fd[i][SM][RD]);

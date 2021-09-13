@@ -15,8 +15,9 @@
 #define SLAVEPATH "./slave" 
 #define RESPATH "results"
 
-#define QSLAVES 5
-#define VIEW_WAIT 10
+#define QSLAVES 3
+#define VIEW_WAIT 5
+#define QINITTASKS 3 // Qty of tasks that are initially dealed per slave
 
 #define MS 0 
 #define SM 1 
@@ -25,8 +26,11 @@
 
 #define SEM_NAME "sem"
 #define SHMEM_NAME "/shmem"
+
 #define MAXPATH 256
 #define MAXQUERY 300
+
+
 
 // Setup and initialization
 int createPipes(int pipes[QSLAVES][2][2]);
@@ -42,8 +46,7 @@ void closeOther(int me , int fd[QSLAVES][2][2]);
 int  appendNewline(char * src , char * dest);
 
 int main(int argc, char *argv[]) {
-  
-	   
+     
 	// Slave, flow direction, read|write
 	int pipes[QSLAVES][2][2]; // pipes[slave_id][ MS | SM ][ RD | WR ]
 	if( createPipes(pipes) < 0 ){
@@ -57,21 +60,24 @@ int main(int argc, char *argv[]) {
 		return -1;
 	}
 
-	int shmid = createBlock(SHMEM_NAME, argc*MAXQUERY); 
-	bufferADT shmbuffer = attachBuffer(shmid, SEM_NAME);
-	printf("%d\n", shmid);
+	int shmfd = createBlock(SHMEM_NAME); 
+	bufferADT shmbuffer = attachBuffer(shmfd, SEM_NAME);
+	printf("%s\n%s\n", SHMEM_NAME, SEM_NAME);
 	fflush(stdout);
 	sleep(VIEW_WAIT); 
+
 	
+	char file_no_str[5]; 
+	sprintf(file_no_str, "%d", argc-1); 
+	writeBuffer(shmbuffer, file_no_str);
+
 	int activeSlaves = QSLAVES;
 	int currentPathIndex = 1;
 	
-	for(int i = 0 ; i < QSLAVES ; i++)
+
+	for(int i = 0 ; i < QSLAVES; i++)
 		assignPath(&currentPathIndex, &activeSlaves, argc, i, pipes, argv);
-		
-	char argno[5];
-	sprintf(argno,"%d",argc-1);
-	writeBuffer(shmbuffer, argno);
+	
 
 	int resultfd;
 	if ((resultfd = open(RESPATH, O_RDWR|O_CREAT, S_IRWXU)) < 0) 
@@ -101,14 +107,15 @@ int main(int argc, char *argv[]) {
 				deployResults(queryBuffer, shmbuffer, resultfd, readChar+header); 
 			}
 		} 
-		initializeSet(&readings,pipes); // reset set
+		initializeSet(&readings, pipes); // reset set
 	}
 
-	for (int i = 0 ; i < QSLAVES ; i++)
-		waitpid(slvids[i],NULL,0);	
 
-	detachBuffer(shmbuffer, shmid);
-	destroyBlock(shmid, SEM_NAME, SHMEM_NAME);
+	for (int i = 0 ; i < QSLAVES ; i++)
+		waitpid(slvids[i], NULL, 0);	
+
+	detachBuffer(shmbuffer, shmfd);
+	destroyBlock(shmfd, SEM_NAME, SHMEM_NAME);
 }
 
 
@@ -159,7 +166,7 @@ void assignPath(int * currentPathIndex , int * active, int argc , int slaveIdx, 
 			close(pipes[slaveIdx][MS][WR]);
 			pipes[slaveIdx][MS][WR]=-1;
 			(*active)--;
-	}
+		}
 }
 
 void deployResults(char * results, bufferADT buffer, int resultfd, int size) {

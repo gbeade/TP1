@@ -9,7 +9,7 @@
 
 typedef struct bufferCDT * bufferADT;
 
-int createBlock(const char * shmName, int size);
+int createBlock(const char * shmName);
 
 bufferADT attachBuffer(int shmid, char* semName);
 

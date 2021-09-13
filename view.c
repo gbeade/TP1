@@ -3,42 +3,48 @@
 #include <stdio.h>
 #include "shmem_posix.h"
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 
-#define SEM_NAME "sem"
-#define SHMEM_NAME "/shmem"
+#define BUFFSIZE 256
 
 int main(int argc , char * argv[]){
 	
-	char keyString[5];
-	createBlock(SHMEM_NAME, 20*300);
-	if(argc != 2 ) { //hay que leerlo de entrada estandar.
-		char * line;
-		size_t dim = 5 ; 
-		getline(&line,&dim,stdin);
-		strcpy(keyString,line);
-	}else{
-		strcpy(keyString , argv[1]);
-	
+	char * shmname = NULL, * semname = NULL; 
+	ssize_t n1 = 0, n2 = 0; 
+	size_t buffsize = BUFFSIZE; 
+
+	if (argc == 1) { 
+		n1 = getline(&shmname, &buffsize, stdin); 
+		n2 = getline(&semname, &buffsize, stdin);
+		shmname[n1-1] = '\0'; 
+		semname[n2-1] = '\0';  
+	} else if (argc == 3) {
+		shmname = argv[1]; 
+		semname = argv[2]; 	
+	} else {
+		return 1; 
 	}
-	int key = strtol(keyString,NULL,10);
 
+	int shmfd = createBlock(shmname);  // Salva: tamaño va a usar 
+	bufferADT buffer = attachBuffer(shmfd, semname);
 
+	char file_no_str[6] = {0}; 
+	readBuffer(buffer, file_no_str);
+	int files = atoi(file_no_str); 	
 
-	bufferADT buffer = attachBuffer(key,SEM_NAME);
-
-	char argno[5];
-	readBuffer(buffer,argno);
- 	int files = strtol(argno,NULL,10);
-
-	char toPrint[300];
-	while(files){
-		readBuffer(buffer,toPrint);
-		printf("%s\n",toPrint);
+	char resultBuffer[BUFFSIZE];
+	while (files){
+		readBuffer(buffer, resultBuffer);
+		printf("%s\n", resultBuffer);
 		files--;
 	}
 
-	detachBuffer(buffer, key);
+	detachBuffer(buffer, shmfd);
+
+	if (n1) free(shmname); 
+	if (n2)	free(semname); 
+	
 }
 
 

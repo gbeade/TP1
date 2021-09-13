@@ -14,6 +14,11 @@
 
 #define _XOPEN_SOURCE 500
 
+// TODO definilo en el makefile si no te gusta este tamaño 
+#ifndef BLOCKSIZE
+	#define BLOCKSIZE 4096
+#endif
+
 //TODO falta hacer las validaciones con pvs_studio, cambiar sprintf para que no de warnings
 
 static void checkOffset(int newOffset,bufferADT buffer);
@@ -26,7 +31,7 @@ typedef struct bufferCDT{
 } bufferCDT;
 
 
-int createBlock(const char *shmName, int size){
+int createBlock(const char *shmName){
 
 	int shmid = shm_open(shmName, O_CREAT | O_RDWR, 0777); //El problema con esto es que shm_open toma un path absoluto y no uno relativo
 	if(shmid == ERROR){
@@ -34,25 +39,24 @@ int createBlock(const char *shmName, int size){
 		return 1;
 	}
 
-	if(ftruncate(shmid, size) == ERROR){
+	if(ftruncate(shmid, BLOCKSIZE) == ERROR){
 		perror("ftruncate could not asign a length to the shmem");
 		return 1;
 	}
-
 
 	return shmid;
 
 }
 
-bufferADT attachBuffer(int shmid, char* semName){
+bufferADT attachBuffer(int shmfd, char* semName){
 	char * mem;
 	struct stat *statbuf = malloc(sizeof(struct stat));
-	if(fstat(shmid, statbuf) == ERROR){
+	if(fstat(shmfd, statbuf) == ERROR){
 		perror("fstat could not access the block size");
 		return NULL;
 	}
 
-	if((mem = mmap(NULL, statbuf->st_size, PROT_EXEC | PROT_READ | PROT_WRITE, MAP_SHARED, shmid, 0)) == (char *) ERROR){
+	if((mem = mmap(NULL, statbuf->st_size, PROT_EXEC | PROT_READ | PROT_WRITE, MAP_SHARED, shmfd, 0)) == (char *) ERROR){
 		perror("shmat could not attach the shmem segment");
 		return NULL;
 	}
@@ -80,25 +84,18 @@ bufferADT attachBuffer(int shmid, char* semName){
 	return buffer;
 }
 
-//TODO tener cuidado si se detachea la shmem pero no el semaforo
 void detachBuffer(bufferADT buffer, int shmid){
-	struct stat *statbuf = malloc(sizeof(struct stat));
 
-	if(fstat(shmid, statbuf) == ERROR){
-		perror("fstat could not acces the segment size");
-		return;
-	}
-
-	if(munmap((void *) buffer->mem, statbuf->st_size) == ERROR){
+	if( munmap((void *) buffer->mem , BLOCKSIZE) == ERROR){
 		perror("shmdt could not detach shmem segment");
 		return;
 	}
-	free(statbuf);
 
-	if(sem_close(buffer->mutex) == ERROR){
+	if( sem_close(buffer->mutex) == ERROR ){
 		perror("sem_close could not close semaphore");
 		return;
 	}
+
 	free(buffer);
 }
 

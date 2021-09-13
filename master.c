@@ -40,7 +40,7 @@ int createSlaves(pid_t ids[QSLAVES] , int pipes[QSLAVES][2][2]);
 void initializeSet(fd_set * set, int  fd[QSLAVES][2][2]);  
 
 // File and result deployment
-void assignPath(int * currentPathIndex , int * active, int argc , int slaveIdx, int pipes[QSLAVES][2][2], char * argv[]);
+void assignPath(int * currentPathIndex , int * active, int argc , int slaveIdx, int pipes[QSLAVES][2][2], char * argv[],int workPerSlave);
 void deployResults(char * results, bufferADT buffer, int resultfd, int size); 
 
 // Ancillary 
@@ -69,16 +69,13 @@ int main(int argc, char *argv[]) {
 	sleep(VIEW_WAIT); 
 
 	
-	char file_no_str[5]; 
-	sprintf(file_no_str, "%d", argc-1); 
-	writeBuffer(shmbuffer, file_no_str);
 
 	int activeSlaves = QSLAVES;
 	int currentPathIndex = 1;
-	
+	int workPerSlave = 2 ; 	
 
 	for(int i = 0 ; i < QSLAVES; i++)
-		assignPath(&currentPathIndex, &activeSlaves, argc, i, pipes, argv);
+		assignPath(&currentPathIndex, &activeSlaves, argc, i, pipes, argv,workPerSlave);
 	
 
 	int resultfd;
@@ -99,20 +96,26 @@ int main(int argc, char *argv[]) {
 	   	for (int i = 0 ; i < QSLAVES && updated ; i++) 
 			if(FD_ISSET(pipes[i][SM][RD], &readings)) {
 				updated--;	
-				assignPath(&currentPathIndex, &activeSlaves, argc, i, pipes, argv);
+				assignPath(&currentPathIndex, &activeSlaves, argc, i, pipes, argv,1);//1 per slave when reasigning.
 			}
 
 		// Read slaves' results 
 		for(int i = 0 ; i < QSLAVES ; i++){
 			if(FD_ISSET(pipes[i][SM][RD],&readings)){
-				int readChar = read(pipes[i][SM][RD], queryBuffer, MAXQUERY); 
-				queryBuffer[readChar]=0;
-				deployResults(queryBuffer, shmbuffer, resultfd, readChar); 
+				int readChar = read(pipes[i][SM][RD], queryBuffer, MAXQUERY * workPerSlave); 
+				if( readChar == 0 ) {
+					pipes[i][MS][WR]=-1;
+					activeSlaves--;			
+				}else{	
+					queryBuffer[readChar]=0;
+					deployResults(queryBuffer, shmbuffer, resultfd, readChar); 
+				}
 			}
 		} 
 		initializeSet(&readings, pipes); // reset set
 	}
 
+	writeBuffer(shmbuffer,"1");
 
 	for (int i = 0 ; i < QSLAVES ; i++)
 		waitpid(slvids[i], NULL, 0);	
@@ -159,18 +162,17 @@ int createSlaves(pid_t slvids[QSLAVES] , int pipes[QSLAVES][2][2]){
 	return 0;
 }
 
-void assignPath(int * currentPathIndex , int * active, int argc , int slaveIdx, int pipes[QSLAVES][2][2], char * argv[]){
-	if( *currentPathIndex < argc){
-			char pass[50];
+void assignPath(int * currentPathIndex , int * active, int argc , int slaveIdx, int pipes[QSLAVES][2][2], char * argv[] , int workPerSlave ){
+	char pass[50];
+	for(int i = 0 ; i < workPerSlave ; i++){ 
+		if( *currentPathIndex < argc){
 			int count = appendNewline(argv[*currentPathIndex],pass);
 			if (write( pipes[slaveIdx][MS][WR] , pass , count) != count)
 				printf("Write goes wrong\n");
 			(*currentPathIndex)++;
-		} else {
+		} else 
 			close(pipes[slaveIdx][MS][WR]);
-			pipes[slaveIdx][MS][WR]=-1;
-			(*active)--;
-		}
+	}
 }
 
 void deployResults(char * results, bufferADT buffer, int resultfd, int size) {

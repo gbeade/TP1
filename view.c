@@ -9,6 +9,8 @@
 #include <string.h>
 
 #define BUFFSIZE 256
+#define END '1'
+
 
 int main(int argc , char * argv[]){
 	
@@ -28,18 +30,17 @@ int main(int argc , char * argv[]){
 		return 1; 
 	}
 
-	int shmfd = createBlock(shmname);  // Salva: tamaño va a usar 
+	int shmfd = createBlock(shmname);  
 	bufferADT buffer = attachBuffer(shmfd, semname);
 
-	char file_no_str[6] = {0}; 
-	readBuffer(buffer, file_no_str);
-	int files = atoi(file_no_str); 	
 
 	char resultBuffer[BUFFSIZE];
-	while (files){
+	while (1){
 		readBuffer(buffer, resultBuffer);
+		if(resultBuffer[0] == END)
+			break;
 		printf("%s\n", resultBuffer);
-		files--;
+		
 	}
 
 	detachBuffer(buffer, shmfd);

@@ -12,12 +12,12 @@
 
 // Compile with -DSOLVER = '"solver_path"'
 #ifndef SOLVER
-	#define SOLVER "/usr/bin/minisat"
+	#define SOLVER "ls"     //"/usr/bin/minisat"
 #endif
 
 // Compile with -DPARSER ='"cmd_parser"'
 #ifndef PARSER
-  #define PARSER "grep -o -e \"Number of.*[0-9]\\+\" -e \"CPU time.*\" -e \".*SATISFIABLE\""
+  #define PARSER "echo Hello World!\n > pruebademakefile"  // "grep -o -e \"Number of.*[0-9]\\+\" -e \"CPU time.*\" -e \".*SATISFIABLE\""
 #endif 
 
 #define BUFFSIZE 256 

@@ -1,28 +1,32 @@
+SOLVER = "/usr/bin/minisat"  # Path of the executable that will process the files 
+PARSER = "grep -o -e \"Number of.*[0-9]\\+\" -e \"CPU time.*\" -e \".*SATISFIABLE\""   # Shell command to parse the output of the solver
+BLOCKSIZE = 4096  # Size of the block of share memory, in bytes. 
+
 CC = gcc
-CFLAGS = -std=gnu99 -g -Wall -pedantic
+CFLAGS = -std=c99 -g -Wall -pedantic
 OBJS= master.o shmem_posix.o sem.o 
-
-all:master
-
-master:$(OBJS) slave view
-	$(CC) $(OBJS) -o master -pthread -lrt
-
-view:shmem_posix.o sem.o view.o
-	$(CC) shmem_posix.o sem.o view.o -o view -pthread -lrt
+SHMEM=shmem_posix.o sem.o -pthread -lrt
 
 
-slave:slave.o
-	$(CC) slave.o -o slave 
-slave.o:slave.c
+all: master view slave 
 
-master.o:master.c shmem_posix.h
+master: shmem_posix.o sem.o master.c
+	$(CC) $(CFLAGS) -o master master.c $(SHMEM)
 
-shmem_posix.o:shmem_posix.c sem.h
+view: shmem_posix.o sem.o view.c
+	$(CC) $(CFLAGS) -o view view.c $(SHMEM)
 
-sem.o:sem.c
+slave: slave.o
+	$(CC) $(CFLAGS) -o slave slave.o
 
-view.o:view.c
+slave.o:
+	$(CC) $(CFLAGS) -DSOLVER='$(SOLVER)' -DPARSER='$(PARSER)' -c slave.c
+
+shmem_posix.o: shmem_posix.c
+	$(CC) $(CFLAGS) -DBLOCKSIZE=$(BLOCKSIZE) -c shmem_posix.c
+
+sem.o: sem.c
+	$(CC) $(CFLAGS) -c sem.c
 
 clean:
-	rm *.o slave master view results
-
+	rm -f *.o view slave master results

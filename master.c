@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
 		initializeSet(&readings, pipes); // reset set
 	}
 
-	writeBuffer(shmbuffer,"1");
+	writeBuffer(shmbuffer, "@");
 
 	for (int i = 0 ; i < QSLAVES ; i++)
 		waitpid(slvids[i], NULL, 0);	

@@ -9,7 +9,7 @@
 #include <string.h>
 
 #define BUFFSIZE 256
-#define END '1'
+#define END '@'
 
 
 int main(int argc , char * argv[]){
@@ -35,12 +35,10 @@ int main(int argc , char * argv[]){
 
 
 	char resultBuffer[BUFFSIZE];
-	while (1){
+
+	while (resultBuffer[0] != END){
 		readBuffer(buffer, resultBuffer);
-		if(resultBuffer[0] == END)
-			break;
 		printf("%s\n", resultBuffer);
-		
 	}
 
 	detachBuffer(buffer, shmfd);

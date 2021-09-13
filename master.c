@@ -163,7 +163,7 @@ int createSlaves(pid_t slvids[QSLAVES] , int pipes[QSLAVES][2][2]){
 }
 
 void assignPath(int * currentPathIndex , int * active, int argc , int slaveIdx, int pipes[QSLAVES][2][2], char * argv[] , int workPerSlave ){
-	char pass[50];
+	char pass[MAXPATH];
 	for(int i = 0 ; i < workPerSlave ; i++){ 
 		if( *currentPathIndex < argc){
 			int count = appendNewline(argv[*currentPathIndex],pass);

@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #define _POSIX_C_SOURCE 200809L
 
 #include <stdio.h>
@@ -44,6 +46,8 @@ int main(int argc , char * argv[]){
 
 	if (n1) free(shmname); 
 	if (n2)	free(semname); 
+	
+	return 0;
 	
 }
 

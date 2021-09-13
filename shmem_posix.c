@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #define _XOPEN_SOURCE 500
 #include "shmem_posix.h"
 #include <sys/mman.h>
@@ -52,8 +54,10 @@ int createBlock(const char *shmName){
 bufferADT attachBuffer(int shmfd, char* semName){
 	char * mem;
 	struct stat *statbuf = malloc(sizeof(struct stat));
+	if(statbuf==NULL) return NULL;
 	if(fstat(shmfd, statbuf) == ERROR){
 		perror("fstat could not access the block size");
+		free(statbuf);
 		return NULL;
 	}
 
@@ -136,8 +140,4 @@ static void checkOffset(int newOffset,bufferADT buffer){
 	else buffer->offset += newOffset; 
 }
 
-
-long getOffset(bufferADT buffer){
-	return buffer->offset;
-}
 

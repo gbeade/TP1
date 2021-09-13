@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #define _POSIX_C_SOURCE 200809L
 
 #include <stdio.h>
@@ -30,17 +32,19 @@ pid_t callSolver(char * buffer , int parserStdin );
 int main(int argc, char *argv[]) {
 
 	char buffer[BUFFSIZE];  
-	FILE * parser;	
-	int parserfd;
 	pid_t solverpid;
 	int status;
 	int egrepPipe[2];
 
 	char result[MAXQUERY];
 	char solverResult[MAXQUERY];
-	int offset = 0 ;
 
 	while (getPath(buffer) != NULL) {
+
+		FILE * parser;	
+		int parserfd;
+		int offset = 0 ;
+
 		if( pipe(egrepPipe) < 0 ) 
 			return -1;
 		

@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #define _POSIX_C_SOURCE  200809L
 
 #include <stdio.h>
@@ -86,9 +88,11 @@ int main(int argc, char *argv[]) {
 	fd_set readings;
 	initializeSet(&readings, pipes);
 	
-	int updated;
 	char queryBuffer[MAXQUERY]; 
+
 	while(activeSlaves){
+
+		int updated;
 		updated = select(FD_SETSIZE, &readings, NULL, NULL, NULL); 
 
 		// Distribute tasks to unoccupied slaves
@@ -115,6 +119,7 @@ int main(int argc, char *argv[]) {
 
 	detachBuffer(shmbuffer, shmfd);
 	destroyBlock(shmfd, SEM_NAME, SHMEM_NAME);
+	return 0;
 }
 
 
@@ -155,8 +160,8 @@ int createSlaves(pid_t slvids[QSLAVES] , int pipes[QSLAVES][2][2]){
 }
 
 void assignPath(int * currentPathIndex , int * active, int argc , int slaveIdx, int pipes[QSLAVES][2][2], char * argv[]){
-	char pass[50];
 	if( *currentPathIndex < argc){
+			char pass[50];
 			int count = appendNewline(argv[*currentPathIndex],pass);
 			if (write( pipes[slaveIdx][MS][WR] , pass , count) != count)
 				printf("Write goes wrong\n");

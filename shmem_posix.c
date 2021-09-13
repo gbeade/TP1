@@ -16,10 +16,6 @@
 
 static void checkOffset(int newOffset,bufferADT buffer);
 
-typedef struct blockCDT{ 
-	int shmid;
-	int size;
-} blockCDT;
 
 typedef struct bufferCDT{
 	char * mem;
@@ -28,30 +24,25 @@ typedef struct bufferCDT{
 } bufferCDT;
 
 
-blockADT createBlock(const char *pathname, int size){
+int createBlock(const char *shmName, int size){
 
-	int shmid = shm_open("/something", O_CREAT | O_RDWR, 0777); //El problema con esto es que shm_open toma un path absoluto y no uno relativo
+	int shmid = shm_open(shmName, O_CREAT | O_RDWR, 0777); //El problema con esto es que shm_open toma un path absoluto y no uno relativo
 	if(shmid == ERROR){
 		perror("shm_open could not create the shmem segment");
-		return NULL;
+		return 1;
 	}
 
 	if(ftruncate(shmid, size) == ERROR){
 		perror("ftruncate could not asign a length to the shmem");
-		return NULL;
+		return 1;
 	}
 
-	blockADT block = malloc(sizeof(struct blockCDT));
-	if(block == NULL) return NULL;
 
-	block -> shmid = shmid;
-	block -> size = size;
-
-	return block;
+	return shmid;
 
 }
 
-bufferADT attachBuffer(int shmid, char* name){
+bufferADT attachBuffer(int shmid, char* semName){
 	char * mem;
 	struct stat *statbuf = malloc(sizeof(struct stat));
 	if(fstat(shmid, statbuf) == ERROR){
@@ -68,9 +59,9 @@ bufferADT attachBuffer(int shmid, char* name){
 
 	//TODO Hay que ver si el nombre del semaforo se pasar como parametro o se elige uno predeterminado
 	sem_t* sem;
-	if( (sem = sem_open(name, O_CREAT | O_EXCL | O_RDWR, S_IRWXU, 0)) == SEM_FAILED){
+	if( (sem = sem_open(semName, O_CREAT | O_EXCL | O_RDWR, S_IRWXU, 0)) == SEM_FAILED){
 	    if(errno == 17)
-		    sem = sem_open(name, O_RDWR);
+		    sem = sem_open(semName, O_RDWR);
 	    else{
 		    perror("sem_open could not open the semaphore");
 		    return NULL;
@@ -109,23 +100,22 @@ void detachBuffer(bufferADT buffer, int shmid){
 	free(buffer);
 }
 
-void destroyBlock(blockADT block){
+void destroyBlock(int shmid, char *semName, char *shmName){
 
-	if(sem_unlink("LoCoco") == ERROR){
+	if(sem_unlink(semName) == ERROR){
 		perror("shmem could not be unlinked");
 		return;
 	}
 
-	if(shm_unlink("/something") == ERROR){
+	if(shm_unlink(shmName) == ERROR){
 		perror("sem could not be unlinked");
 		return;
 	}
 
-	if(close(block->shmid) == ERROR){
+	if(close(shmid) == ERROR){
 		perror("shmctl could not distroy the shmem segment");
 		return; 	
 	}
-	free(block);
 }
 
 
@@ -145,14 +135,6 @@ static void checkOffset(int newOffset,bufferADT buffer){
 	else buffer->offset += newOffset; 
 }
 
-
-int getShmid(blockADT block){
-	return block->shmid;
-}
-
-int getSize(blockADT block){
-	return block->size;
-}
 
 long getOffset(bufferADT buffer){
 	return buffer->offset;

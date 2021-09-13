@@ -17,15 +17,13 @@ bufferADT attachBuffer(int shmid, char* name);
 
 void detachBuffer(bufferADT buffer);
 
-void destroyBlock(blockADT block);
+void destroyBlock(blockADT block, char *semName);
 
 int getShmid(blockADT block);
 
 int getSize(blockADT block);
 
 long getOffset(bufferADT buffer);
-
-//Implemento el sistema de semafors directamente aca para tener una base, este se puede abstraer de la shmem implementando un sistema prod/cons generico
 
 void readBuffer(bufferADT buffer, char* dest);
 

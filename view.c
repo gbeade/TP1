@@ -1,15 +1,17 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include <stdio.h>
-#include "shmem.h"
+#include "shmem_posix.h"
 #include <stdlib.h>
 #include <string.h>
 
-#define SEM_NAME "LoCoco"
+#define SEM_NAME "sem"
+#define SHMEM_NAME "/shmem"
 
 int main(int argc , char * argv[]){
 	
 	char keyString[5];
+	createBlock(SHMEM_NAME, 20*300);
 	if(argc != 2 ) { //hay que leerlo de entrada estandar.
 		char * line;
 		size_t dim = 5 ; 
@@ -36,7 +38,7 @@ int main(int argc , char * argv[]){
 		files--;
 	}
 
-	detachBuffer(buffer);
+	detachBuffer(buffer, key);
 }
 
 

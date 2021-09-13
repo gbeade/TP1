@@ -11,7 +11,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-//TODO falta hacer las validaciones con pvs_studio, cambiar sprintf para que no de warnings
 
 static void checkOffset(int newOffset,bufferADT buffer);
 
@@ -35,7 +34,7 @@ blockADT createBlock(const char *pathname, int size){
 		return NULL;
 	}
 
-	int shmid = shmget(key, size, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH | IPC_CREAT); //TODO Hay que mirar el tema de los permisos
+	int shmid = shmget(key, size, S_IRUSR | S_IWUSR | IPC_CREAT);
 	if(shmid == ERROR){
 		perror("shget could not create the shmem segment");
 		return NULL;
@@ -93,11 +92,17 @@ void detachBuffer(bufferADT buffer){
 	free(buffer);
 }
 
-void destroyBlock(blockADT block){
+void destroyBlock(blockADT block, char *semName){
+	if(sem_unlik(semName) == ERROR){
+		perror("the semaphore could not be unlinked");
+		return;
+	}
+
 	if( shmctl(block->shmid , IPC_RMID , NULL) == ERROR){
 		perror("shmctl could not distroy the shmem segment");
 		return; 	
 	}
+
 	free(block);
 }
 

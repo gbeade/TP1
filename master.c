@@ -9,7 +9,7 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <sys/time.h>
-#include "shmem.h"
+#include "shmem_posix.h"
 #include <fcntl.h>
  
 #define SLAVEPATH "./slave" 
@@ -23,7 +23,8 @@
 #define RD 0 
 #define WR 1
 
-#define SEM_NAME "LoCoco"
+#define SEM_NAME "sem"
+#define SHMEM_NAME "/shmem"
 #define MAXPATH 256
 #define MAXQUERY 300
 
@@ -56,9 +57,9 @@ int main(int argc, char *argv[]) {
 		return -1;
 	}
 
-	blockADT shmblock = createBlock(argv[0], argc*MAXQUERY); 
-	bufferADT shmbuffer = attachBuffer(getShmid(shmblock), SEM_NAME);
-	printf("%d\n", getShmid(shmblock));
+	int shmid = createBlock(SHMEM_NAME, argc*MAXQUERY); 
+	bufferADT shmbuffer = attachBuffer(shmid, SEM_NAME);
+	printf("%d\n", shmid);
 	fflush(stdout);
 	sleep(VIEW_WAIT); 
 	
@@ -106,8 +107,8 @@ int main(int argc, char *argv[]) {
 	for (int i = 0 ; i < QSLAVES ; i++)
 		waitpid(slvids[i],NULL,0);	
 
-	detachBuffer(shmbuffer);
-	destroyBlock(shmblock);
+	detachBuffer(shmbuffer, shmid);
+	destroyBlock(shmid, SEM_NAME, SHMEM_NAME);
 }
 
 

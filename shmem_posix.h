@@ -7,21 +7,15 @@
 #define ERROR (-1)
 #define NON_ZERO 1
 
-typedef struct blockCDT * blockADT;
-
 typedef struct bufferCDT * bufferADT;
 
-blockADT createBlock(const char * pathname, int size);
+int createBlock(const char * shmName, int size);
 
-bufferADT attachBuffer(int shmid, char* name);
+bufferADT attachBuffer(int shmid, char* semName);
 
 void detachBuffer(bufferADT buffer, int shmid);
 
-void destroyBlock(blockADT block);
-
-int getShmid(blockADT block);
-
-int getSize(blockADT block);
+void destroyBlock(int shmdi, char* semName, char* shmName);
 
 long getOffset(bufferADT buffer);
 

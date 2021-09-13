@@ -12,6 +12,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#define _XOPEN_SOURCE 500
+
 //TODO falta hacer las validaciones con pvs_studio, cambiar sprintf para que no de warnings
 
 static void checkOffset(int newOffset,bufferADT buffer);

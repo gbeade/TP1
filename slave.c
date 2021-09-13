@@ -1,5 +1,4 @@
-#define _POSIX_C_SOURCE 2
-
+#define _POSIX_C_SOURCE 200809L
 
 #include <stdio.h>
 #include <sys/types.h>
@@ -21,6 +20,7 @@
 #endif 
 
 #define BUFFSIZE 256 
+#define MAXQUERY 300
 
 
 char * getPath(char * path);
@@ -34,24 +34,64 @@ int main(int argc, char *argv[]) {
 	int parserfd;
 	pid_t solverpid;
 	int status;
+	int egrepPipe[2];
+
+	char result[MAXQUERY];
+	char solverResult[MAXQUERY];
+	int offset = 0 ;
 
 	while (getPath(buffer) != NULL) {
+		if( pipe(egrepPipe) < 0 ) 
+			return -1;
+		
+	
+		int stdoutCopy = dup(STDOUT_FILENO);
+
+		//stdout for the parser 
+		if ( dup2(egrepPipe[1],STDOUT_FILENO) < 0 ){
+			perror("Unable to pipe the parser\n");
+			return -1;		
+		}
+
+
 
 		 if( ( parser = popen(PARSER,"w") ) == NULL){
 			perror("Unable to open the parser\n");	
 			return -1;
 		}
+		
+
 
 		parserfd = fileno(parser);		
 
 		solverpid = callSolver(buffer, parserfd);
-	    if(solverpid < 0 ){
+	        if(solverpid < 0 ){
 			perror("Solver could not be open\n");
 			return -1;
 		} 
 
 		waitpid(solverpid,&status,0);
 		pclose(parser);
+
+		
+		offset=0;
+		offset += sprintf(result,"Processs Number: \t%d\n",getpid());
+		offset += sprintf(result+offset,"%s\n",buffer);
+	        
+		if( read(egrepPipe[0] , solverResult , MAXQUERY ) < 0 ) {
+			perror("Unable to read from the parser");
+			return -1;
+		}
+				
+	
+		offset += sprintf(result+offset,"%s\n",solverResult);
+		result[offset]=0;	
+		//get the slave stdout and copy the result.
+		dup2(stdoutCopy , STDOUT_FILENO);
+		dprintf(STDOUT_FILENO,"%s",result);	
+
+
+
 	}
 	return 0; 
 } 

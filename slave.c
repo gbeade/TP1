@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
 
 		
 		offset=0;
-		offset += sprintf(result,"Processs Number: \t%d\n",getpid());
+		offset += sprintf(result, "Processs Number: \t%d\n", getpid());
 		offset += sprintf(result+offset,"%s\n",buffer);
 	        
 		if( read(egrepPipe[0] , solverResult , MAXQUERY ) < 0 ) {

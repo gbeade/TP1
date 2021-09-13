@@ -57,7 +57,8 @@ bufferADT attachBuffer(int shmfd, char* semName){
 		return NULL;
 	}
 
-	if((mem = mmap(NULL, statbuf->st_size, PROT_EXEC | PROT_READ | PROT_WRITE, MAP_SHARED, shmfd, 0)) == (char *) ERROR){
+	
+	if((mem = mmap(NULL, statbuf->st_size, PROT_READ | PROT_WRITE, MAP_SHARED, shmfd, 0)) == (char *) ERROR){
 		perror("shmat could not attach the shmem segment");
 		return NULL;
 	}

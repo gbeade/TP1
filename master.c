@@ -101,10 +101,9 @@ int main(int argc, char *argv[]) {
 		// Read slaves' results 
 		for(int i = 0 ; i < QSLAVES ; i++){
 			if(FD_ISSET(pipes[i][SM][RD],&readings)){
-				int header = sprintf(queryBuffer, "Process number:\t%d\n", slvids[i]);
-				int readChar = read(pipes[i][SM][RD], queryBuffer + header, MAXQUERY); 
-				queryBuffer[readChar+header]=0;
-				deployResults(queryBuffer, shmbuffer, resultfd, readChar+header); 
+				int readChar = read(pipes[i][SM][RD], queryBuffer, MAXQUERY); 
+				queryBuffer[readChar]=0;
+				deployResults(queryBuffer, shmbuffer, resultfd, readChar); 
 			}
 		} 
 		initializeSet(&readings, pipes); // reset set

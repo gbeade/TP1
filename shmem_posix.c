@@ -1,3 +1,4 @@
+#define _XOPEN_SOURCE 500
 #include "shmem_posix.h"
 #include <sys/mman.h>
 #include <semaphore.h>
@@ -12,7 +13,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#define _XOPEN_SOURCE 500
+
 
 // TODO definilo en el makefile si no te gusta este tamaño 
 #ifndef BLOCKSIZE

@@ -53,8 +53,6 @@ int main(int argc, char *argv[]) {
 			return -1;		
 		}
 
-
-
 		 if( ( parser = popen(PARSER,"w") ) == NULL){
 			perror("Unable to open the parser\n");	
 			return -1;

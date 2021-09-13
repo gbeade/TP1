@@ -27,7 +27,7 @@
 
 char * getPath(char * path);
 pid_t callSolver(char * buffer , int parserStdin );
-
+void addEnd( char * str);
 
 int main(int argc, char *argv[]) {
 
@@ -87,16 +87,26 @@ int main(int argc, char *argv[]) {
 				
 	
 		offset += sprintf(result+offset,"%s\n",solverResult);
-		result[offset]=0;	
+		addEnd(result);
+		
 		//get the slave stdout and copy the result.
 		dup2(stdoutCopy , STDOUT_FILENO);
-		dprintf(STDOUT_FILENO,"%s",result);	
+		dprintf(STDOUT_FILENO,"%s\n",result);	
 
 
 
 	}
 	return 0; 
 } 
+
+void addEnd(char * str){
+	int i = 0; 
+	while( str[i++] != 'E'); //finish it after {UN}SATISFIABLE
+	str[i]=0;
+}
+
+
+
 
 char * getPath(char path[BUFFSIZE]){
 	if( fgets(path, BUFFSIZE, stdin) == NULL)

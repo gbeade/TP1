@@ -105,15 +105,17 @@ int main(int argc, char *argv[]) {
 		// Read slaves' results 
 		for(int i = 0 ; i < QSLAVES ; i++){
 			if(FD_ISSET(pipes[i][SM][RD],&readings)){
-				int readChar = read(pipes[i][SM][RD], queryBuffer, MAXQUERY); 
-				queryBuffer[readChar]=0;
-				deployResults(queryBuffer, shmbuffer, resultfd, readChar); 
+				int readChar = read(pipes[i][SM][RD], queryBuffer, MAXQUERY);
+				if(readChar != -1 && readChar < 300){
+					queryBuffer[readChar]=0;
+					deployResults(queryBuffer, shmbuffer, resultfd, readChar); 
+				}
 			}
 		} 
 		initializeSet(&readings, pipes); // reset set
 	}
 
-
+ 
 	for (int i = 0 ; i < QSLAVES ; i++)
 		waitpid(slvids[i], NULL, 0);	
 

@@ -27,6 +27,7 @@
 
 char * getPath(char * path);
 pid_t callSolver(char * buffer , int parserStdin );
+void addEnd(char * str);
 
 
 int main(int argc, char *argv[]) {
@@ -90,18 +91,31 @@ int main(int argc, char *argv[]) {
 		result[offset]=0;	
 		//get the slave stdout and copy the result.
 		dup2(stdoutCopy , STDOUT_FILENO);
-		dprintf(STDOUT_FILENO,"%s",result);	
+		addEnd(result);
+		dprintf(STDOUT_FILENO,"%s\n",result);	
 
 
 
 	}
 	return 0; 
-} 
+}
+
+void addEnd(char * str){
+	int i = 0; 
+	while( str[i++] != 'E' && i < MAXQUERY  );
+	str[i] = 0 ;
+
+
+
+}
+
 
 char * getPath(char path[BUFFSIZE]){
 	if( fgets(path, BUFFSIZE, stdin) == NULL)
 		return NULL;
 	int n = strlen(path);
+	if ( n == 0 ) 
+		return NULL; 
 	path[n-1]=0;	
 	return path;
 }

@@ -19,7 +19,7 @@ view: shmem_posix.o sem.o view.c
 slave: slave.o
 	$(CC) $(CFLAGS) -o slave slave.o
 
-slave.o:
+slave.o:slave.c
 	$(CC) $(CFLAGS) -DSOLVER='$(SOLVER)' -DPARSER='$(PARSER)' -c slave.c
 
 shmem_posix.o: shmem_posix.c

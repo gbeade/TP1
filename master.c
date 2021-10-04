@@ -192,10 +192,13 @@ int appendNewline(char * src , char * dest){
 }
 
 void closeOther(int me , int fd[QSLAVES][2][2]){
-	for (int i = 0 ; i < me ; i++){
-		close(fd[i][SM][RD]);
-		close(fd[i][SM][WR]);
-		close(fd[i][MS][RD]);
-		close(fd[i][MS][WR]);
+	for (int i = 0 ; i < QSLAVES ; i++){
+		if(i!=me){
+			close(fd[i][SM][RD]);
+			close(fd[i][SM][WR]);
+			close(fd[i][MS][RD]);
+			close(fd[i][MS][WR]);
+		}
+		
 	}	
 }

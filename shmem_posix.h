@@ -11,14 +11,16 @@ typedef struct bufferCDT * bufferADT;
 
 int createBlock(const char * shmName);
 
-bufferADT attachBuffer(int shmid, char* semName);
+bufferADT attachBuffer(int fd, char* semName);
 
-void detachBuffer(bufferADT buffer, int shmid);
+int detachBuffer(bufferADT buffer, int fd);
 
-void destroyBlock(int shmdi, char* semName, char* shmName);
+int destroyBlock(int shmdi, char* semName, char* shmName);
 
-void readBuffer(bufferADT buffer, char* dest);
+int readBuffer(bufferADT buffer, char* dest);
 
-void writeBuffer(bufferADT buffer, char* src);
+int writeBuffer(bufferADT buffer, char* src);
+
+int securityUnlink(char* shmName, char* semName);
 
 #endif

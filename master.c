@@ -17,9 +17,11 @@
 #define SLAVEPATH "./slave" 
 #define RESPATH "results"
 
-#define QSLAVES 3
+#define QSLAVES 5
 #define VIEW_WAIT 5
 #define QINITTASKS 3 // Qty of tasks that are initially dealed per slave
+#define WORKPERSLAVE 3
+
 
 #define MS 0 
 #define SM 1 
@@ -72,7 +74,7 @@ int main(int argc, char *argv[]) {
 
 	int activeSlaves = QSLAVES;
 	int currentPathIndex = 1;
-	int workPerSlave = 2 ; 	
+	int workPerSlave = WORKPERSLAVE ; 	
 
 	for(int i = 0 ; i < QSLAVES; i++)
 		assignPath(&currentPathIndex, &activeSlaves, argc, i, pipes, argv,workPerSlave);
@@ -116,6 +118,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	writeBuffer(shmbuffer,"1");
+
 
 	for (int i = 0 ; i < QSLAVES ; i++)
 		waitpid(slvids[i], NULL, 0);	
@@ -192,10 +195,12 @@ int appendNewline(char * src , char * dest){
 }
 
 void closeOther(int me , int fd[QSLAVES][2][2]){
-	for (int i = 0 ; i < me ; i++){
-		close(fd[i][SM][RD]);
+	for (int i = 0 ; i < QSLAVES ; i++){
+		if(i!=me){
+			close(fd[i][SM][RD]);
 		close(fd[i][SM][WR]);
 		close(fd[i][MS][RD]);
 		close(fd[i][MS][WR]);
+		}
 	}	
 }

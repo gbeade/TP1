@@ -42,7 +42,6 @@ int main(int argc, char *argv[]) {
 
 	while (getPath(buffer) != NULL) {
 
-		sleep(30);
 
 		FILE * parser;	
 		int parserfd;
@@ -54,16 +53,16 @@ int main(int argc, char *argv[]) {
 	
 		int stdoutCopy = dup(STDOUT_FILENO);
 
+		//defensa TP
 		//stdout for the parser 
 		if ( dup2(egrepPipe[1],stdoutCopy) < 0 ){
 			perror("Unable to pipe the parser\n");
 			return -1;		
 		}
 			
-		//defensa
 		close(egrepPipe[1]);
 		close(stdoutCopy);
-
+		//defensa TP
 
 		 if( ( parser = popen(PARSER,"w") ) == NULL){
 			perror("Unable to open the parser\n");	
@@ -96,9 +95,8 @@ int main(int argc, char *argv[]) {
 	
 		offset += sprintf(result+offset,"%s\n",solverResult);
 		result[offset]=0;	
-		//get the slave stdout and copy the result.
-		//dup2(stdoutCopy , STDOUT_FILENO);
-		//close(stdoutCopy);
+
+
 		
 		addEnd(result);
 		dprintf(STDOUT_FILENO,"%s\n",result);	
@@ -135,8 +133,12 @@ pid_t callSolver(char * buffer , int parserfd) {
 		return -1;
 	else if(pid==0){
 		if ( dup2(parserfd, STDOUT_FILENO) < 0) 
-		       return -1;		
-		close(parserfd);	   
+		       return -1;
+			   	
+		//defensa TP	
+		close(parserfd);
+		//defensa TP
+
 		execl(SOLVER, SOLVER, buffer, NULL);
 		return -1; 
 	}

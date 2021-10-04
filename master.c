@@ -150,11 +150,15 @@ int createSlaves(pid_t slvids[QSLAVES] , int pipes[QSLAVES][2][2]){
 		} else if (!slvids[i]) {
 			closeOther(i,pipes);
 			close(pipes[i][MS][WR]); 
-			close(pipes[i][SM][RD]); 
+			close(pipes[i][SM][RD]);
+			//---// 
 			if ( dup2(pipes[i][MS][RD], STDIN_FILENO) < 0  || dup2(pipes[i][SM][WR], STDOUT_FILENO) < 0 ) 
 				return -1;
+			close(pipes[i][MS][RD]); 
+			close(pipes[i][SM][WR]); 
 			execvp(SLAVEPATH, args); 
 		} 
+		
 		close(pipes[i][MS][RD]); 
 		close(pipes[i][SM][WR]); 
 	}
